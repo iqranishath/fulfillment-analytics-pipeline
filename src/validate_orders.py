@@ -1,8 +1,12 @@
+import json
+from datetime import datetime
 from pathlib import Path
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 RAW_DATA = PROJECT_ROOT / "data" / "raw"
+PROCESSED_DATA = PROJECT_ROOT / "data" / "processed"
+MAX_REJECTION_RATE = 0.001  # fail the run if more than 1% of rows are rejected
 
 TIMESTAMP_COLS = [
     "order_purchase_timestamp",
@@ -44,10 +48,54 @@ def apply_rules(orders):
     return orders
 
 
+#
+def split_orders(orders):
+    """Separate rejected rows from clean rows."""
+    rejected_mask = orders["rejection_reason"].notna()
+    clean = orders[~rejected_mask]
+    rejected = orders[rejected_mask]
+    return clean, rejected
+
+
+#
+def build_run_metrics(orders, clean, rejected):
+    """Summarise this run: row counts, rejection rate and flag counts."""
+    flag_cols = [col for col in orders.columns if col.startswith("flag_")]
+    return {
+        "run_at": datetime.now().isoformat(timespec="seconds"),
+        "rows_read": len(orders),
+        "rows_clean": len(clean),
+        "rows_rejected": len(rejected),
+        "rejection_rate": round(len(rejected) / len(orders), 5),
+        "flag_counts": {col: int(orders[col].sum()) for col in flag_cols},
+    }
+
+
+#
+def write_outputs(clean, rejected, metrics, passed):
+    """Always write rejected rows and metrics; write clean data only if the run passed."""
+    PROCESSED_DATA.mkdir(parents=True, exist_ok=True)
+    rejected.to_csv(PROCESSED_DATA / "orders_rejected.csv", index=False)
+    with open(PROCESSED_DATA / "run_metrics.json", "w") as f:
+        json.dump(metrics, f, indent=2)
+    if passed:
+        clean.to_csv(PROCESSED_DATA / "orders_clean.csv", index=False)
+
+
+# the main block now splits, writes and checks the threshold
 if __name__ == "__main__":
     orders = apply_rules(load_orders())
+    clean, rejected = split_orders(orders)
+    metrics = build_run_metrics(orders, clean, rejected)
 
-    print("Rejected:", orders["rejection_reason"].notna().sum())
+    passed = metrics["rejection_rate"] <= MAX_REJECTION_RATE
+    write_outputs(clean, rejected, metrics, passed)
 
-    flag_cols = [col for col in orders.columns if col.startswith("flag_")]
-    print(orders[flag_cols].sum())
+    print(json.dumps(metrics, indent=2))
+
+    if not passed:
+        raise SystemExit(
+            f"FAILED: rejection rate {metrics['rejection_rate']:.2%} "
+            f"exceeds limit {MAX_REJECTION_RATE:.2%}"
+        )
+    print("PASSED: clean data written")
