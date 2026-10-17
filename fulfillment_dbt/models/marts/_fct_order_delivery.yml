@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: fct_order_delivery
-    description: One row per delivered order, with SLA outcome, customer and latest review score.
+    description: One row per delivered order, with SLA outcome, delay cause, customer and latest review score.
     columns:
       - name: order_id
         data_tests:
@@ -23,3 +23,9 @@ models:
               arguments:
                 values: [1, 2, 3, 4, 5]
                 quote: false
+      - name: delay_cause
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['on_time', 'seller', 'carrier', 'unknown']
