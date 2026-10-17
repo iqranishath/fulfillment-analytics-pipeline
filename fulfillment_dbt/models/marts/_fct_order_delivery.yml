@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: fct_order_delivery
+    description: One row per delivered order, with SLA outcome (late or on time).
+    columns:
+      - name: order_id
+        data_tests:
+          - unique
+          - not_null
+      - name: delivered_at
+        data_tests:
+          - not_null
+      - name: is_late
+        data_tests:
+          - not_null
