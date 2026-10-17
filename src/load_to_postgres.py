@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, inspect, text
 
 from validate_orders import (
     PROJECT_ROOT,
@@ -24,6 +24,14 @@ def get_engine():
     db = os.environ["POSTGRES_DB"]
     return create_engine(f"postgresql+psycopg2://{user}:{password}@localhost:5433/{db}")
 
+def replace_table_contents(df, table, conn):
+    """Empty and refill a raw table, keeping the table (and views built on it) in place."""
+    if inspect(conn).has_table(table, schema="raw"):
+        conn.execute(text(f"TRUNCATE TABLE raw.{table}"))
+        df.to_sql(table, conn, schema="raw", if_exists="append", index=False)
+    else:
+        df.to_sql(table, conn, schema="raw", if_exists="replace", index=False)
+
 
 def load_to_postgres(engine, clean, rejected, metrics):
     """Write clean rows, rejected rows and the run log in one transaction."""
@@ -38,8 +46,8 @@ def load_to_postgres(engine, clean, rejected, metrics):
 
     with engine.begin() as conn:
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw"))
-        clean.to_sql("orders", conn, schema="raw", if_exists="replace", index=False)
-        rejected.to_sql("orders_rejected", conn, schema="raw", if_exists="replace", index=False)
+        replace_table_contents(clean, "orders", conn)
+        replace_table_contents(rejected, "orders_rejected", conn)
         run_log.to_sql("pipeline_runs", conn, schema="raw", if_exists="append", index=False)
 
 

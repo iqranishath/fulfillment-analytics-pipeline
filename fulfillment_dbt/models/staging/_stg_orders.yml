@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: One row per order, cleaned and renamed from raw.orders.
+    columns:
+      - name: order_id
+        description: Unique order identifier.
+        data_tests:
+          - unique
+          - not_null
+      - name: order_status
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['delivered', 'shipped', 'canceled', 'unavailable',
+                         'invoiced', 'processing', 'created', 'approved']
