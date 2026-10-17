@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: stg_order_items
+    description: One row per item within an order.
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+      - name: seller_id
+        data_tests:
+          - not_null
+
+  - name: stg_customers
+    description: One row per customer_id (one per order); customer_unique_id is the real person.
+    columns:
+      - name: customer_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_reviews
+    description: One row per review per order; a single review can cover several orders from the same cart.
+    columns:
+      - name: review_key
+        data_tests:
+          - unique
+          - not_null
+      - name: review_id
+        data_tests:
+          - not_null
+      - name: review_score
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false

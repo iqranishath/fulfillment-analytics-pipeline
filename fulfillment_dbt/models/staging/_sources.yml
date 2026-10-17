@@ -7,3 +7,6 @@ sources:
       - name: orders
       - name: orders_rejected
       - name: pipeline_runs
+      - name: order_items
+      - name: customers
+      - name: reviews
