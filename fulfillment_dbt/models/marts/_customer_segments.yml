@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: customer_segments
+    description: Adapted RFM segmentation, one row per customer.
+    columns:
+      - name: customer_unique_id
+        data_tests:
+          - unique
+          - not_null
+      - name: rfm_segment
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['repeat', 'recent_high_value', 'recent_low_value',
+                         'lapsed_high_value', 'lapsed_low_value']
