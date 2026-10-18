@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: One row per real customer (customer_unique_id), with order history and first-order experience.
+    columns:
+      - name: customer_unique_id
+        data_tests:
+          - unique
+          - not_null
+      - name: order_count
+        data_tests:
+          - not_null
+      - name: first_order_late
+        data_tests:
+          - not_null

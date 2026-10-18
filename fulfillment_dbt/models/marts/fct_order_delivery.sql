@@ -30,8 +30,11 @@ customers as (
 seller_deadlines as (
     select
         order_id,
-        max(seller_ship_deadline) as seller_ship_deadline,
-        count(distinct seller_id)  as seller_count
+        max(seller_ship_deadline)         as seller_ship_deadline,
+        count(distinct seller_id)         as seller_count,
+        sum(price)                        as items_value,
+        sum(freight_value)                as freight_value,
+        sum(price) + sum(freight_value)   as order_value
     from {{ ref('stg_order_items') }}
     group by order_id
 ),
@@ -47,6 +50,7 @@ joined as (
         o.shipped_to_carrier_at,
         s.seller_ship_deadline,
         s.seller_count,
+        s.order_value,
         o.estimated_delivery_date,
         o.delivered_at,
         o.delivered_at::date                             as delivered_date,
