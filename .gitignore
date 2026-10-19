@@ -5,3 +5,4 @@ __pycache__/
 .idea/
 data/processed/
 logs/
+.ipynb_checkpoints/
