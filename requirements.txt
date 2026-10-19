@@ -1,8 +1,15 @@
-pandas
-sqlalchemy
-psycopg2-binary
-python-dotenv
-dbt-postgres
-notebook
-matplotlib
-statsmodels
+# Data processing and loading
+pandas==3.0.6
+SQLAlchemy==2.1.5
+psycopg2-binary==2.9.13
+python-dotenv==1.2.4
+
+# Transformation and testing
+dbt-core==1.13.0b1
+dbt-postgres==1.11.0
+
+# Analysis
+notebook==7.6.3
+matplotlib==3.11.2
+statsmodels==0.15.0
+scipy==1.18.1
